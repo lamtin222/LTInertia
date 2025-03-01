@@ -4,7 +4,6 @@
         <div class="container mx-auto">
             <h1 class="text-3xl font-bold mb-6">Configure BREAD for {{ dataType.name }}</h1>
             <form @submit.prevent="saveConfiguration">
-                <!-- Basic Information -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-gray-700">Display Name Singular</label>
@@ -105,20 +104,20 @@
                         <label class="text-gray-700">Generate Permissions</label>
                     </div>
                 </div>
-                <!-- Fields Configuration -->
+
                 <div class="mb-4">
                     <h2 class="text-xl font-semibold mb-2">Fields Configuration</h2>
                     <div v-if="form.rows && form.rows.length > 0" class="border border-gray-300 rounded overflow-x-auto">
                         <table class="min-w-full bg-white">
                             <thead class="bg-gray-200">
                                 <tr>
-                                    <th class="py-2 px-4 text-left"></th> <!-- Cột kéo thả -->
-                                    <th class="py-2 px-4 text-left">Required</th>
+                                    <th class="py-2 px-4 text-left"></th>
                                     <th class="py-2 px-4 text-left">Field</th>
                                     <th class="py-2 px-4 text-left">Display Name</th>
                                     <th class="py-2 px-4 text-left">Type</th>
+                                    <th class="py-2 px-4 text-left">Required</th>
                                     <th class="py-2 px-4 text-left">Options</th>
-                                    <th class="py-2 px-4 text-left">Details</th>
+                                    <th class="py-2 px-4 text-left">Details (JSON)</th>
                                     <th class="py-2 px-4 text-left">Actions</th>
                                 </tr>
                             </thead>
@@ -131,17 +130,13 @@
                                             </button>
                                         </td>
                                         <td class="py-2 px-4">
-                                            <input v-model="row.required" type="checkbox" class="h-4 w-4" checked />
-                                        </td>
-                                        <td class="py-2 px-4">
-                                            <label class="w-full p-1 border rounded">{{ row.field }}</label>
+                                            <input v-model="row.field" class="w-full p-1 border rounded" required />
                                         </td>
                                         <td class="py-2 px-4">
                                             <input v-model="row.display_name" class="w-full p-1 border rounded" required />
                                         </td>
-                                        <!-- Type -->
                                         <td class="py-2 px-4">
-                                            <select v-model="row.type" class="w-full p-1 border rounded" required>
+                                            <select v-model="row.type" class="w-full p-1 border rounded" required @change="updateDefaultDetails(row)">
                                                 <option value="text">Text</option>
                                                 <option value="textarea">Textarea</option>
                                                 <option value="number">Number</option>
@@ -149,39 +144,46 @@
                                                 <option value="date">Date</option>
                                                 <option value="datetime-local">DateTime</option>
                                                 <option value="time">Time</option>
+                                                <option value="select">Select</option>
                                                 <option value="tinymce">TinyMCE</option>
                                             </select>
                                         </td>
-                                        <!-- Options -->
+                                        <td class="py-2 px-4">
+                                            <input v-model="row.required" type="checkbox" class="h-4 w-4" />
+                                        </td>
                                         <td class="py-2 px-4">
                                             <div class="flex flex-col space-y-1">
                                                 <label class="flex items-center">
-                                                    <input v-model="row.browse" type="checkbox" class="h-4 w-4 mr-1" :checked="row.browse" />
+                                                    <input v-model="row.browse" type="checkbox" class="h-4 w-4 mr-1" />
                                                     Browse
                                                 </label>
                                                 <label class="flex items-center">
-                                                    <input v-model="row.read" type="checkbox" class="h-4 w-4 mr-1" :checked="row.read" />
+                                                    <input v-model="row.read" type="checkbox" class="h-4 w-4 mr-1" />
                                                     Read
                                                 </label>
                                                 <label class="flex items-center">
-                                                    <input v-model="row.edit" type="checkbox" class="h-4 w-4 mr-1" :checked="row.edit" />
+                                                    <input v-model="row.edit" type="checkbox" class="h-4 w-4 mr-1" />
                                                     Edit
                                                 </label>
                                                 <label class="flex items-center">
-                                                    <input v-model="row.add" type="checkbox" class="h-4 w-4 mr-1" :checked="row.add" />
+                                                    <input v-model="row.add" type="checkbox" class="h-4 w-4 mr-1" />
                                                     Add
                                                 </label>
                                                 <label class="flex items-center">
-                                                    <input v-model="row.delete" type="checkbox" class="h-4 w-4 mr-1" :checked="row.delete" />
+                                                    <input v-model="row.delete" type="checkbox" class="h-4 w-4 mr-1" />
                                                     Delete
                                                 </label>
                                             </div>
                                         </td>
-                                        <!-- Details -->
                                         <td class="py-2 px-4">
-                                            <textarea v-model="row.details" :id="`details-${index}`" />
+                                            <JsonEditor
+                                                v-model="row.details"
+                                                :expanded-on-start="true"
+                                                :modes="['tree', 'code']"
+                                                :mode="'tree'"
+                                                :default-value="{}"
+                                            />
                                         </td>
-                                        <!-- Actions -->
                                         <td class="py-2 px-4">
                                             <button
                                                 type="button"
@@ -208,7 +210,7 @@
                         <PlusCircleIcon class="h-6 w-6" />
                     </button>
                 </div>
-                <!-- Button Save and Cancel -->
+
                 <div class="flex justify-end space-x-2">
                     <Link :href="route('admin.bread.index', dataType.slug)" class="text-gray-500 hover:underline">
                         Cancel
@@ -228,11 +230,11 @@
 
 <script setup>
 import AdminLayout from '../../../Components/AdminLayout.vue';
-// import TinyMCE from '../../../Components/TinyMCE.vue';
 import { useForm, Head } from '@inertiajs/vue3';
 import { Link } from '@inertiajs/vue3';
 import { PlusCircleIcon, MinusCircleIcon, Bars3Icon } from '@heroicons/vue/24/outline';
 import Draggable from 'vuedraggable';
+import JsonEditor from 'vue3-json-editor';
 
 const props = defineProps(['dataType']);
 
@@ -253,13 +255,13 @@ const form = useForm({
         type: row.type,
         display_name: row.display_name,
         required: row.required,
-        browse: row.browse !== undefined ? row.browse : true,
-        read: row.read !== undefined ? row.read : true,
-        edit: row.edit !== undefined ? row.edit : true,
-        add: row.add !== undefined ? row.add : true,
-        delete: row.delete !== undefined ? row.delete : true,
+        browse: row.browse,
+        read: row.read,
+        edit: row.edit,
+        add: row.add,
+        delete: row.delete,
         order: row.order,
-        details: row.details ? JSON.parse(row.details) : '',
+        details: row.details ? JSON.parse(row.details || '{}') : {}, // Đảm bảo giá trị mặc định là {}
     })),
 });
 
@@ -276,7 +278,7 @@ const addRow = () => {
         add: true,
         delete: true,
         order: form.rows.length + 1,
-        details: '',
+        details: {}, // Giá trị mặc định là object rỗng
     });
 };
 
@@ -290,4 +292,14 @@ const saveConfiguration = () => {
     });
     form.put(route('admin.bread.configure.save', props.dataType.slug));
 };
+
+const updateDefaultDetails = (row) => {
+    if (row.type === 'select' && !Object.keys(row.details).length) {
+        row.details = { options: ['option1', 'option2'] }; // Giá trị mặc định cho select
+    }
+};
 </script>
+
+<style scoped>
+/* Thêm style tùy chỉnh nếu cần */
+</style>
