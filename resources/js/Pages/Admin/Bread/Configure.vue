@@ -112,11 +112,11 @@
                             <thead class="bg-gray-200">
                                 <tr>
                                     <th class="py-2 px-4 text-left"></th>
-                                    <th class="py-2 px-4 text-left">Field</th>
-                                    <th class="py-2 px-4 text-left">Display Name</th>
-                                    <th class="py-2 px-4 text-left">Type</th>
-                                    <th class="py-2 px-4 text-left">Required</th>
-                                    <th class="py-2 px-4 text-left">Options</th>
+                                    <th class="py-2 px-4 text-left">REQ</th>
+                                    <th class="py-2 px-4 text-left w-1/10">Field</th>
+                                    <th class="py-2 px-4 text-left w-1/4">Display Name</th>
+                                    <th class="py-2 px-4 text-left w-1/4">Type</th>                                    
+                                    <th class="py-2 px-4 text-left w-1/6">Options</th>
                                     <th class="py-2 px-4 text-left">Details (JSON)</th>
                                     <th class="py-2 px-4 text-left">Actions</th>
                                 </tr>
@@ -129,12 +129,21 @@
                                                 <Bars3Icon class="h-6 w-6" />
                                             </button>
                                         </td>
+                                        <!-- required -->
                                         <td class="py-2 px-4">
-                                            <input v-model="row.field" class="w-full p-1 border rounded" required />
+                                            <input v-model="row.required" type="checkbox" class="h-4 w-4" />
                                         </td>
+                                        <!-- field -->
+                                        <td class="py-2 px-4">
+                                            <label class="w-full p-1 border rounded">
+                                                {{ row.field }}
+                                            </label>
+                                        </td>
+                                        <!-- display name -->
                                         <td class="py-2 px-4">
                                             <input v-model="row.display_name" class="w-full p-1 border rounded" required />
                                         </td>
+                                        <!-- type -->
                                         <td class="py-2 px-4">
                                             <select v-model="row.type" class="w-full p-1 border rounded" required @change="updateDefaultDetails(row)">
                                                 <option value="text">Text</option>
@@ -148,9 +157,8 @@
                                                 <option value="tinymce">TinyMCE</option>
                                             </select>
                                         </td>
-                                        <td class="py-2 px-4">
-                                            <input v-model="row.required" type="checkbox" class="h-4 w-4" />
-                                        </td>
+                                        
+                                        <!-- add permission -->
                                         <td class="py-2 px-4">
                                             <div class="flex flex-col space-y-1">
                                                 <label class="flex items-center">
@@ -176,12 +184,13 @@
                                             </div>
                                         </td>
                                         <td class="py-2 px-4">
-                                            <JsonEditor
+                                            <Vue3JsonEditor
                                                 v-model="row.details"
                                                 :expanded-on-start="true"
                                                 :modes="['tree', 'code']"
-                                                :mode="'tree'"
+                                                :mode="'code'"
                                                 :default-value="{}"
+                                                style="height: 300px;"
                                             />
                                         </td>
                                         <td class="py-2 px-4">
@@ -234,7 +243,7 @@ import { useForm, Head } from '@inertiajs/vue3';
 import { Link } from '@inertiajs/vue3';
 import { PlusCircleIcon, MinusCircleIcon, Bars3Icon } from '@heroicons/vue/24/outline';
 import Draggable from 'vuedraggable';
-import JsonEditor from 'vue3-json-editor';
+import {Vue3JsonEditor} from 'vue3-json-editor';
 
 const props = defineProps(['dataType']);
 
@@ -300,6 +309,8 @@ const updateDefaultDetails = (row) => {
 };
 </script>
 
-<style scoped>
-/* Thêm style tùy chỉnh nếu cần */
+<style >
+.jsoneditor-vue .jsoneditor-menu {  /* Thay đổi selector nếu cần */
+    display: none;  /* Ẩn tiêu đề */
+}
 </style>
